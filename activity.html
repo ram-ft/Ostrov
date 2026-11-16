@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Activity Terrain — Ostrov</title>
+  <meta name="description" content="A contribution heatmap you can pick up: drag, flick and hover the isometric terrain. Plain Canvas, no libraries.">
+  <meta name="theme-color" content="#f4efe4">
+  <script>document.documentElement.classList.add("js");</script>
+  <link rel="icon" href="assets/ostrov.ico" sizes="any">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .terrain-hero {
+      padding: clamp(36px, 6vw, 88px) 0 clamp(22px, 3vw, 36px);
+    }
+
+    .terrain-hero h1 {
+      margin-top: 22px;
+      font-size: clamp(3.2rem, 8.4vw, 7.6rem);
+    }
+
+    .terrain-hero .lede {
+      max-width: 56ch;
+    }
+
+    .terrain-card {
+      --terrain-0: #e6ddc9;
+      --terrain-1: #cfc3a8;
+      --terrain-2: #9a8f75;
+      --terrain-3: #4b453a;
+      --terrain-4: #12110f;
+      --terrain-accent: var(--orange);
+      --terrain-text: #8a8071;
+      position: relative;
+      background: var(--white);
+      border: var(--border);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+
+    .terrain-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 22px 10px;
+      flex-wrap: wrap;
+    }
+
+    .terrain-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .terrain-stat {
+      margin-top: 4px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .terrain-toggle {
+      display: inline-flex;
+      border: var(--border);
+      box-shadow: var(--shadow-sm);
+      background: var(--paper);
+    }
+
+    .terrain-toggle button {
+      appearance: none;
+      border: 0;
+      border-right: var(--border);
+      background: transparent;
+      padding: 9px 16px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--ink);
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .terrain-toggle button:last-child {
+      border-right: 0;
+    }
+
+    .terrain-toggle button:hover {
+      background: var(--paper-2);
+    }
+
+    .terrain-toggle button[aria-pressed="true"],
+    .terrain-toggle button[aria-pressed="true"]:hover {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    #terrain {
+      display: block;
+      width: 100%;
+      height: clamp(340px, 46vw, 520px);
+      touch-action: pan-y;
+      cursor: grab;
+      outline: none;
+      background-image: radial-gradient(rgba(18, 17, 15, 0.1) 1px, transparent 1px);
+      background-size: 18px 18px;
+    }
+
+    #terrain:active,
+    .terrain-card.is-dragging #terrain {
+      cursor: grabbing;
+    }
+
+    #terrain:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: -3px;
+    }
+
+    .terrain-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 22px 18px;
+      border-top: 2px dashed rgba(18, 17, 15, 0.18);
+      flex-wrap: wrap;
+    }
+
+    .terrain-hint {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .terrain-legend {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .terrain-legend i {
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid var(--ink);
+      border-radius: 3px;
+    }
+
+    .terrain-legend span:first-child {
+      margin-right: 4px;
+    }
+
+    .terrain-legend span:last-child {
+      margin-left: 4px;
+    }
+
+    .terrain-note {
+      margin-top: 26px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .terrain-note a {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .terrain-note a:hover {
+      color: var(--ink);
+    }
+
+    .terrain-footer {
+      margin-top: clamp(48px, 7vw, 96px);
+      border-top: var(--border);
+      padding: 22px 0 32px;
+    }
+
+    .terrain-footer-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    @media (max-width: 560px) {
+      .terrain-card {
+        box-shadow: 6px 6px 0 var(--ink);
+      }
+
+      .terrain-bar,
+      .terrain-foot {
+        padding-inline: 16px;
+      }
+
+      #terrain {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="nav" id="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html" aria-label="Ostrov home">
+        <span class="brand-tile"><img src="assets/ostrov-mark.png" alt="" width="24" height="24"></span>
+        <span class="brand-word">Ostrov</span>
+        <span class="brand-tag">for windows</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="index.html#features">Features</a>
+        <a href="index.html#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-ink btn-nav" href="downloads/Ostrov_1.2.10_x64-setup.exe" download>Download <span class="btn-arrow">&darr;</span></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="terrain-hero">
+      <div class="container">
+        <div class="stickers">
+          <span class="sticker sticker-orange">fig. 02</span>
+          <span class="sticker">canvas &middot; no library</span>
+        </div>
+        <h1>Activity,<br>as <span class="mark">terrain.</span></h1>
+        <p class="lede">A contribution heatmap you can pick up. Every day is a column, every column rises with its week. Drag the board, throw it, and let it settle.</p>
+      </div>
+    </section>
+
+    <section class="container" aria-labelledby="terrain-title">
+      <div class="terrain-card" id="terrain-card">
+        <div class="terrain-bar">
+          <div>
+            <p class="terrain-title" id="terrain-title">Activity</p>
+            <p class="terrain-stat" id="terrain-readout" aria-live="polite"></p>
+          </div>
+          <div class="terrain-toggle" role="group" aria-label="View mode">
+            <button type="button" data-view="flat" aria-pressed="false">Flat</button>
+            <button type="button" data-view="terrain" aria-pressed="true">Terrain</button>
+          </div>
+        </div>
+
+        <canvas id="terrain" width="1200" height="560" role="img" tabindex="0"
+          aria-label="Activity terrain. Drag to orbit, hover a day, or use the arrow keys to read each day."></canvas>
+
+        <div class="terrain-foot">
+          <span class="terrain-hint">Drag to orbit &middot; throw to flick &middot; hover a day &middot; arrow keys to scan</span>
+          <div class="terrain-legend" aria-hidden="true">
+            <span>Less</span>
+            <i style="background: var(--terrain-0)"></i>
+            <i style="background: var(--terrain-1)"></i>
+            <i style="background: var(--terrain-2)"></i>
+            <i style="background: var(--terrain-3)"></i>
+            <i style="background: var(--terrain-4)"></i>
+            <span>More</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="terrain-note">Effect after <a href="https://kokonutui.com" target="_blank" rel="noreferrer">KokonutUI</a>&rsquo;s Activity Terrain by <a href="https://github.com/dorianbaffier" target="_blank" rel="noreferrer">@dorianbaffier</a> (MIT), re-implemented in plain Canvas. Demo data only.</p>
+    </section>
+  </main>
+
+  <footer class="terrain-footer">
+    <div class="container terrain-footer-inner">
+      <span>Ostrov &mdash; activity terrain</span>
+      <span>Windows 10 &amp; 11 &middot; x64 &middot; v1.2.10</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="activity-terrain.js"></script>
+</body>
+</html>
