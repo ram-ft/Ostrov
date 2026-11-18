@@ -79,4 +79,4 @@ Pushes to `main` deploy through the included GitHub Actions workflow. Pages has 
 - **Activity Terrain** — [KokonutUI](https://kokonutui.com) / [@dorianbaffier](https://github.com/dorianbaffier), MIT. Ported to plain Canvas for this site.
 - **Everything else** — hand-written for Ostrov.
 
-Ostrov is not affiliated with Apple; "dynamic island" here refers to the interaction pattern.
+Ostrov is not affiliated with Apple; "dynamic island" here refers to the interaction pattern..
